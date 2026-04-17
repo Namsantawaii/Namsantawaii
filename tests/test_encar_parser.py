@@ -32,3 +32,11 @@ def test_parse_encar_listings_from_fixture() -> None:
 def test_load_html_from_input_returns_raw_html() -> None:
     html = "<html><body><p>hello</p></body></html>"
     assert load_html_from_input(html) == html
+
+
+def test_load_html_from_input_reads_local_file(tmp_path: Path) -> None:
+    html = "<html><body><div>local file</div></body></html>"
+    file_path = tmp_path / "encar_extracted.html"
+    file_path.write_text(html, encoding="utf-8")
+
+    assert load_html_from_input(str(file_path)) == html

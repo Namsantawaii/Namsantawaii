@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Iterable
 from urllib.parse import urljoin
 
@@ -27,6 +28,11 @@ def load_html_from_input(raw_input: str, timeout: int = 10) -> str:
     text = (raw_input or "").strip()
     if not text:
         raise ValueError("입력값이 비어 있습니다. 엔카 검색결과 URL 또는 HTML을 입력하세요.")
+
+    # Local file path support (absolute, relative, or ~/...).
+    local_path = Path(text).expanduser()
+    if local_path.is_file():
+        return local_path.read_text(encoding="utf-8", errors="ignore")
 
     if text.lower().startswith(("http://", "https://")):
         headers = {
