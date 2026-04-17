@@ -16,7 +16,7 @@ def test_parse_encar_listings_from_fixture() -> None:
 
     df = parse_encar_listings(html)
 
-    assert len(df) == 3
+    assert len(df) == 4
     assert list(df.columns) == ["name", "price_manwon", "mileage_km", "year", "detail_link"]
 
     first = df.iloc[0]
@@ -26,6 +26,7 @@ def test_parse_encar_listings_from_fixture() -> None:
     assert first["year"] == 2019
     assert first["detail_link"].startswith("https://www.encar.com/")
     assert "리스" not in " ".join(df["name"].astype(str).tolist())
+    assert "BMW M3 세단 컴페티션" in df["name"].tolist()
 
 
 def test_load_html_from_input_returns_raw_html() -> None:

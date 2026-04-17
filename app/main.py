@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
 
 from collector.encar_parser import load_html_from_input, parse_encar_listings
 
@@ -68,10 +70,29 @@ fig = px.scatter(
     x="mileage_km",
     y="price_manwon",
     color="year",
+    text="year",
     hover_data=["name", "detail_link"],
     labels={"mileage_km": "주행거리(km)", "price_manwon": "가격(만원)", "year": "연식"},
 )
 fig.update_traces(marker={"size": 9, "opacity": 0.8})
+fig.update_traces(textposition="top center")
+
+trend_source = filtered.dropna(subset=["mileage_km", "price_manwon"])
+if len(trend_source) >= 2:
+    x = trend_source["mileage_km"].astype(float).to_numpy()
+    y = trend_source["price_manwon"].astype(float).to_numpy()
+    slope, intercept = np.polyfit(x, y, 1)
+    x_line = np.linspace(x.min(), x.max(), 100)
+    y_line = slope * x_line + intercept
+    fig.add_trace(
+        go.Scatter(
+            x=x_line,
+            y=y_line,
+            mode="lines",
+            name="추세선",
+            line={"color": "black", "width": 2},
+        )
+    )
 st.plotly_chart(fig, use_container_width=True)
 
 st.subheader(f"매물 테이블 ({len(filtered)}건)")

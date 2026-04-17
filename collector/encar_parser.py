@@ -68,13 +68,20 @@ def _extract_listings(soup: BeautifulSoup, base_url: str) -> list[CarListing]:
     for selector in selectors:
         found = [node for node in soup.select(selector) if isinstance(node, Tag)]
         if found:
-            containers = found
+            containers.extend(found)
             break
 
-    if not containers:
-        # Fallback: use anchors that likely point to detail pages.
-        candidates = soup.select("a[href*='/dc/dc_cardetailview.do']")
-        containers = [anchor.parent for anchor in candidates if isinstance(anchor.parent, Tag)]
+    # Also collect all elements around detail links. This helps when listing-card
+    # selectors miss some entries in dynamic/changed layouts.
+    candidates = soup.select("a[href*='/dc/dc_cardetailview.do'], a[href*='carid=']")
+    for anchor in candidates:
+        if not isinstance(anchor, Tag):
+            continue
+        container = anchor.find_parent(["li", "article", "div"])
+        if isinstance(container, Tag):
+            containers.append(container)
+        elif isinstance(anchor.parent, Tag):
+            containers.append(anchor.parent)
 
     results: list[CarListing] = []
     seen_links: set[str] = set()
@@ -92,7 +99,7 @@ def _extract_listings(soup: BeautifulSoup, base_url: str) -> list[CarListing]:
 
 
 def _parse_container(container: Tag, base_url: str) -> CarListing | None:
-    link_tag = container.select_one("a[href]")
+    link_tag = _select_detail_link_tag(container)
     if not isinstance(link_tag, Tag):
         return None
 
@@ -129,6 +136,17 @@ def _extract_name(container: Tag, link_tag: Tag) -> str:
         if value:
             return value
     return ""
+
+
+def _select_detail_link_tag(container: Tag) -> Tag | None:
+    anchors = [node for node in container.select("a[href]") if isinstance(node, Tag)]
+    if not anchors:
+        return None
+    for anchor in anchors:
+        href = (anchor.get("href") or "").lower()
+        if "/dc/dc_cardetailview.do" in href or "carid=" in href:
+            return anchor
+    return anchors[0]
 
 
 def _extract_price(text: str) -> int | None:
