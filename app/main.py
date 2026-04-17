@@ -48,13 +48,21 @@ with col2:
         min_price, max_price = 0, 0
     else:
         min_price, max_price = int(price_col.min()), int(price_col.max())
-    selected_price = st.slider("가격(만원)", min_price, max_price, (min_price, max_price))
+    if min_price == max_price:
+        st.number_input("가격(만원)", value=min_price, disabled=True)
+        selected_price = (min_price, max_price)
+    else:
+        selected_price = st.slider("가격(만원)", min_price, max_price, (min_price, max_price))
 with col3:
     if mileage_col.empty:
         min_km, max_km = 0, 0
     else:
         min_km, max_km = int(mileage_col.min()), int(mileage_col.max())
-    selected_km = st.slider("주행거리(km)", min_km, max_km, (min_km, max_km))
+    if min_km == max_km:
+        st.number_input("주행거리(km)", value=min_km, disabled=True)
+        selected_km = (min_km, max_km)
+    else:
+        selected_km = st.slider("주행거리(km)", min_km, max_km, (min_km, max_km))
 
 filtered = df.copy()
 if selected_years:
