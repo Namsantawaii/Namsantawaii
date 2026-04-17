@@ -11,6 +11,12 @@ st.set_page_config(page_title="Encar Listing Analyzer", layout="wide")
 st.title("엔카 매물 분석기")
 st.caption("엔카 검색결과 URL 또는 HTML을 입력해 가격/주행거리 분포를 확인하세요.")
 
+uploaded_html = st.file_uploader(
+    "엔카 HTML 파일 업로드 (.html/.htm)",
+    type=["html", "htm"],
+    accept_multiple_files=False,
+)
+
 source = st.text_area(
     "엔카 검색결과 URL 또는 HTML",
     height=180,
@@ -19,7 +25,10 @@ source = st.text_area(
 
 if st.button("파싱 실행", type="primary"):
     try:
-        html = load_html_from_input(source)
+        if uploaded_html is not None:
+            html = uploaded_html.read().decode("utf-8", errors="ignore")
+        else:
+            html = load_html_from_input(source)
         st.session_state["df"] = parse_encar_listings(html)
     except Exception as exc:  # noqa: BLE001
         st.error(f"파싱 실패: {exc}")
