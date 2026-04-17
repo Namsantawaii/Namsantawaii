@@ -10,6 +10,7 @@ import requests
 from bs4 import BeautifulSoup, Tag
 
 ENCAR_BASE_URL = "https://www.encar.com"
+EXCLUDED_KEYWORDS = ("리스", "장기렌트", "장기 렌트", "리스승계")
 
 
 @dataclass
@@ -103,6 +104,8 @@ def _parse_container(container: Tag, base_url: str) -> CarListing | None:
         return None
 
     text = " ".join(container.stripped_strings)
+    if _should_exclude_listing(text):
+        return None
     price = _extract_price(text)
     mileage = _extract_mileage(text)
     year = _extract_year(text)
@@ -153,3 +156,8 @@ def _extract_year(text: str) -> int | None:
     if m:
         return int(m.group(1))
     return None
+
+
+def _should_exclude_listing(text: str) -> bool:
+    normalized = re.sub(r"\s+", " ", (text or "")).strip().lower()
+    return any(keyword.lower() in normalized for keyword in EXCLUDED_KEYWORDS)

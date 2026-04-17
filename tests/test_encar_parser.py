@@ -25,6 +25,7 @@ def test_parse_encar_listings_from_fixture() -> None:
     assert first["mileage_km"] == 58000
     assert first["year"] == 2019
     assert first["detail_link"].startswith("https://www.encar.com/")
+    assert "리스" not in " ".join(df["name"].astype(str).tolist())
 
 
 def test_load_html_from_input_returns_raw_html() -> None:
